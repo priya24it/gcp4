@@ -1,0 +1,117 @@
+compare_all_mapped.sql
+sql
+Copy
+Edit
+
+
+{% set table_mapping = {
+    'source_table_1': 'target_table_a',
+    'source_table_2': 'target_table_b',
+    'source_table_3': 'target_table_c'
+} %}
+
+{{ compare_latest_partition_mapped(table_mapping) }}
+
+
+Macro: compare_latest_partition_mapped.sql
+
+{% macro compare_latest_partition_mapped(table_mapping) %}
+    
+    {% for source_table, target_table in table_mapping.items() %}
+        
+        -- 1. Get the latest partition ID dynamically for the source table
+        {% set latest_partition_query %}
+            SELECT MAX(partition_description) 
+            FROM information_schema.partitions 
+            WHERE table_name = '{{ source_table }}'
+            AND table_schema = 'd1'
+        {% endset %}
+        
+        {% set latest_partition = run_query(latest_partition_query).columns[0][0] %}
+
+        -- 2. Convert partition format (YYYYMMDD → YYYY-MM-DD)
+        {% if latest_partition %}
+            {% set formatted_partition = latest_partition[:4] ~ '-' ~ latest_partition[4:6] ~ '-' ~ latest_partition[6:8] %}
+        {% else %}
+            {{ exceptions.raise_compiler_error("No partition found for table " ~ source_table) }}
+        {% endif %}
+
+        -- 3. Get common columns dynamically
+        {% set source_cols = dbt_utils.get_column_names(source('source_data', source_table)) %}
+        {% set target_cols = dbt_utils.get_column_names(source('target_data', target_table)) %}
+        {% set common_cols = source_cols | intersect(target_cols) | difference(['file_date', 'business_date']) %}
+
+        -- Ensure there are common columns
+        {% if common_cols | length == 0 %}
+            {{ exceptions.raise_compiler_error("No common columns found for tables " ~ source_table ~ " and " ~ target_table) }}
+        {% endif %}
+
+        -- 4. Assign row numbers dynamically based on all common columns
+        WITH source_filtered AS (
+            SELECT 
+                ROW_NUMBER() OVER (PARTITION BY {{ common_cols | join(', ') }} ORDER BY {{ common_cols | join(', ') }}) AS row_id,
+                file_date,
+                {{ common_cols | join(', ') }}
+            FROM {{ source('source_data', source_table) }}
+            WHERE file_date = '{{ formatted_partition }}'
+        ),
+        target_filtered AS (
+            SELECT 
+                ROW_NUMBER() OVER (PARTITION BY {{ common_cols | join(', ') }} ORDER BY {{ common_cols | join(', ') }}) AS row_id,
+                business_date,
+                {{ common_cols | join(', ') }}
+            FROM {{ source('target_data', target_table) }}
+            WHERE business_date = '{{ formatted_partition }}'
+        )
+
+        -- 5. Compare filtered tables using common columns
+        SELECT 
+            '{{ source_table }}' AS source_table_name, 
+            '{{ target_table }}' AS target_table_name, 
+            s.row_id, 
+            s.file_date, 
+            t.business_date, 
+            {% for col in common_cols %}
+                s.{{ col }} AS source_{{ col }}, 
+                t.{{ col }} AS target_{{ col }}
+                {% if not loop.last %}, {% endif %}
+            {% endfor %}
+        FROM source_filtered s
+        FULL OUTER JOIN target_filtered t
+        ON {% for col in common_cols %}
+                s.{{ col }} = t.{{ col }}
+            {% if not loop.last %} AND {% endif %}
+           {% endfor %}
+        WHERE 
+            {% for col in common_cols %}
+                (s.{{ col }} IS DISTINCT FROM t.{{ col }}) {% if not loop.last %} OR {% endif %}
+            {% endfor %}
+        ;
+    
+    {% endfor %}
+
+{% endmacro %}
+
+
+sources.yml
+
+version: 2
+
+sources:
+  - name: source_data
+    schema: d1
+    tables:
+      - name: source_table_1
+      - name: source_table_2
+      - name: source_table_3
+
+  - name: target_data
+    schema: d2
+    tables:
+      - name: target_table_a
+      - name: target_table_b
+      - name: target_table_c
+
+
+
+
