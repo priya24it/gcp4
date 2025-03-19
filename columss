@@ -1,0 +1,30 @@
+get_columns_macro.sql
+
+
+{% macro get_columns(schema_name, table_name) %}
+    {% set query %}
+        SELECT column_name
+        FROM `{{ target.database }}`.{{ schema_name }}.INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = '{{ table_name }}'
+    {% endset %}
+
+    {% set results = run_query(query) %}
+
+    {% if execute %}
+        {% set columns = results.columns[0].values() %}
+    {% else %}
+        {% set columns = [] %}
+    {% endif %}
+
+    {{ return(columns) }}
+{% endmacro %}
+
+
+{% set table_columns = get_columns('test_priya', 'partitioned_credit_cards') %}
+
+select 
+    {% for col in table_columns %}
+        {{ col }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+from {{ source('source_data', 'partitioned_credit_cards') }}
+
