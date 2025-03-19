@@ -1,0 +1,7 @@
+{% set table_mapping = {
+    'asppan301contracts': 'pershing_asppan301contracts'
+} %}
+
+{% for source_table, target_table in table_mapping.items() %}
+    {{ log("Checking source: " ~ source_table ~ " with target: " ~ target_table, info=True) }}
+{% endfor %}
