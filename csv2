@@ -1,0 +1,65 @@
+from google.cloud import bigquery
+import pandas as pd
+
+# Set your Google Cloud project details
+PROJECT_ID = "your_project_id"
+DATASET_ID = "your_dataset_id"
+TABLE_ID = "your_table_id"
+CSV_FILE_PATH = "data.csv"  # Update with the correct path
+
+# Initialize BigQuery Client
+bq_client = bigquery.Client(project=PROJECT_ID)
+
+def table_exists():
+    """Check if a BigQuery table exists."""
+    table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
+    try:
+        bq_client.get_table(table_ref)  # Try to fetch the table
+        print(f"Table {table_ref} exists.")
+        return True
+    except Exception:
+        print(f"Table {table_ref} does not exist.")
+        return False
+
+def create_table(df):
+    """Creates a BigQuery table based on DataFrame columns if it does not exist."""
+    table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
+
+    schema = []
+    for column, dtype in df.dtypes.items():
+        if "int" in str(dtype):
+            schema.append(bigquery.SchemaField(column, "INTEGER"))
+        elif "float" in str(dtype):
+            schema.append(bigquery.SchemaField(column, "FLOAT"))
+        else:
+            schema.append(bigquery.SchemaField(column, "STRING"))
+
+    table = bigquery.Table(table_ref, schema=schema)
+    table = bq_client.create_table(table)
+    print(f"Table {table.table_id} created with schema: {[field.name + ':' + field.field_type for field in schema]}")
+
+def load_csv_to_bigquery():
+    """Loads a local CSV file into BigQuery without unnamed columns."""
+    # Read CSV file into Pandas DataFrame
+    df = pd.read_csv(CSV_FILE_PATH, index_col=False)  # Prevents unnamed index column
+
+    # Remove any unnamed columns (sometimes CSV files contain unwanted index columns)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed', na=False)]
+
+    # Check if table exists, if not, create it with dynamic schema
+    if not table_exists():
+        create_table(df)
+
+    # Load data into BigQuery
+    job_config = bigquery.LoadJobConfig(
+        autodetect=True,  # Automatically detect schema
+        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,  # Append data if table exists
+    )
+
+    job = bq_client.load_table_from_dataframe(df, f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}", job_config=job_config)
+    job.result()  # Wait for the job to complete
+
+    print(f"CSV file {CSV_FILE_PATH} loaded into {PROJECT_ID}.{DATASET_ID}.{TABLE_ID}")
+
+# **Run the full process**
+load_csv_to_bigquery()
