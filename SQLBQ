@@ -1,0 +1,56 @@
+import pyodbc
+import pandas as pd
+from google.cloud import bigquery
+import os
+
+# Ensure gcloud authentication (Auto Login)
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ""
+
+# SQL Server Connection - Windows Authentication
+SQL_SERVER = "your_sql_server"
+DATABASE = "your_database"
+TABLE_NAME = "your_table"
+
+# BigQuery Configuration
+BQ_PROJECT_ID = "your_gcp_project_id"
+BQ_DATASET = "d1"
+
+# Connect to SQL Server using Windows Authentication
+def get_sql_data(table_name):
+    conn_str = f"DRIVER={{SQL Server}};SERVER={SQL_SERVER};DATABASE={DATABASE};Trusted_Connection=yes;"
+    conn = pyodbc.connect(conn_str)
+    
+    query = f"SELECT * FROM {table_name}"
+    df = pd.read_sql(query, conn)
+    conn.close()
+    
+    return df
+
+# Load Data into BigQuery
+def load_data_to_bq(df, table_name):
+    client = bigquery.Client()
+    table_id = f"{BQ_PROJECT_ID}.{BQ_DATASET}.{table_name}"
+
+    # Check if the table exists, create if not
+    try:
+        client.get_table(table_id)
+        print(f"Table {table_id} already exists.")
+    except:
+        schema = [bigquery.SchemaField(col, "STRING") for col in df.columns]  # Adjust types as needed
+        table = bigquery.Table(table_id, schema=schema)
+        client.create_table(table)
+        print(f"Table {table_id} created.")
+
+    # Load Data
+    job = client.load_table_from_dataframe(df, table_id)
+    job.result()
+    print(f"Data loaded into {table_id}")
+
+# Main execution
+if __name__ == "__main__":
+    df = get_sql_data(TABLE_NAME)
+
+    if not df.empty:
+        load_data_to_bq(df, TABLE_NAME)
+    else:
+        print(f"No data found in {TABLE_NAME}")
