@@ -1,0 +1,2 @@
+-- Log the value so it appears in the DBT output window
+{% do log("Latest partition date: " ~ latest_target_partition_date_val, info=True) %}
