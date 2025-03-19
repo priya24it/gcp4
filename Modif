@@ -1,0 +1,69 @@
+import os
+import yaml
+from google.cloud import bigquery
+
+# Set up BigQuery client
+client = bigquery.Client()
+
+# Query to get distinct table names from INFORMATION_SCHEMA.PARTITIONS
+query = """
+SELECT DISTINCT table_name
+FROM `your_project_id.your_dataset.INFORMATION_SCHEMA.PARTITIONS`
+"""
+
+# Run query
+query_job = client.query(query)
+table_names = [row["table_name"] for row in query_job]
+
+# Define the base SQL template
+sql_template = """{% set table_mapping = {
+    '{table_name}': '{table_name}_backup'
+} %}
+
+{{ compare_latest_partition_mapped(table_mapping) }}
+"""
+
+# Directory for SQL files
+output_dir = "generated_sql_files"
+os.makedirs(output_dir, exist_ok=True)
+
+# Generate .SQL files
+for table in table_names:
+    file_path = os.path.join(output_dir, f"{table}.sql")
+    with open(file_path, "w") as sql_file:
+        sql_file.write(sql_template.replace("{table_name}", table))
+
+# Path to sources.yaml
+sources_yaml_path = "sources.yaml"
+
+# Load or create sources.yaml
+if os.path.exists(sources_yaml_path):
+    with open(sources_yaml_path, "r") as yaml_file:
+        sources_data = yaml.safe_load(yaml_file) or {}
+else:
+    sources_data = {"sources": []}
+
+# Ensure sources.yaml has structure
+source_name = "bigquery_source"  # Change this as needed
+if "sources" not in sources_data:
+    sources_data["sources"] = []
+
+# Find or create the source entry
+existing_source = next((s for s in sources_data["sources"] if s["name"] == source_name), None)
+if not existing_source:
+    existing_source = {"name": source_name, "tables": []}
+    sources_data["sources"].append(existing_source)
+
+# Convert existing tables to a set for easy lookup
+existing_table_names = {t["name"] for t in existing_source["tables"]}
+
+# Add only new tables (avoid duplicates)
+for table in table_names:
+    if table not in existing_table_names:
+        existing_source["tables"].append({"name": table})
+
+# Save updated sources.yaml
+with open(sources_yaml_path, "w") as yaml_file:
+    yaml.dump(sources_data, yaml_file, default_flow_style=False)
+
+print(f"Generated SQL files in '{output_dir}' and updated 'sources.yaml' without duplicates.")
