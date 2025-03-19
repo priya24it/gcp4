@@ -1,0 +1,19 @@
+{% set table_mapping = {
+    'partitioned_credit_cards': 'partitioned_credit_cards'
+} %}
+
+{% set max_target_partition_date_sql %}
+    SELECT MAX(PARSE_DATE('%Y%m%d', partition_id)) AS partition_date
+    FROM test_priya.INFORMATION_SCHEMA.PARTITIONS
+    WHERE table_name = 'partitioned_credit_cards'
+{% endset %}
+
+{% set latest_target_partition_date = run_query(max_target_partition_date_sql) %}
+
+{% if execute %}
+    {% set latest_target_partition_date_val = latest_target_partition_date.columns[0][0] %}
+{% else %}
+    {% set latest_target_partition_date_val = dbt_date.today() %}
+{% endif %}
+
+{% do log("Execution completed!") %}
