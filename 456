@@ -1,0 +1,25 @@
+import os
+
+# Folder containing .sql files
+sql_folder = "generated_sql_files"
+
+# Read all .sql files in the folder
+for filename in os.listdir(sql_folder):
+    if filename.endswith(".sql"):
+        file_path = os.path.join(sql_folder, filename)
+        
+        # Extract table name (filename without .sql extension)
+        table_name = os.path.splitext(filename)[0]
+
+        # Read file content
+        with open(file_path, "r") as sql_file:
+            sql_content = sql_file.read()
+
+        # Replace placeholder {table_name} with actual filename
+        updated_content = sql_content.replace("{table_name}", table_name)
+
+        # Save updated file (overwrite the existing one)
+        with open(file_path, "w") as sql_file:
+            sql_file.write(updated_content)
+
+        print(f"Updated: {filename} -> Replaced with table name '{table_name}'")
