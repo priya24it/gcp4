@@ -1,0 +1,45 @@
+{{ config(
+    tags=['finance', 'quarterly', '2024']
+) }}
+
+
+dbt run --select tag:quarterly
+
+
+
+{% set common_cols = [] %}
+
+{% for col in source_columns %}
+    {% if col in target_columns and not col | regex_search('\d') %}
+        {% do common_cols.append(col) %}
+    {% endif %}
+{% endfor %}
+
+
+SELECT
+    '{{ source_table }}' AS source_table_name,
+    '{{ target_table }}' AS target_table_name,
+    s.row_id,
+    t.row_id
+    {% for col in common_cols %}
+        {% if not loop.last %}, {% endif %}
+        CASE 
+            WHEN s.{{ col }} != t.{{ col }} OR (s.{{ col }} IS NULL AND t.{{ col }} IS NOT NULL) OR (s.{{ col }} IS NOT NULL AND t.{{ col }} IS NULL) 
+            THEN s.{{ col }} 
+            ELSE NULL 
+        END AS source_{{ col }},
+        CASE 
+            WHEN s.{{ col }} != t.{{ col }} OR (s.{{ col }} IS NULL AND t.{{ col }} IS NOT NULL) OR (s.{{ col }} IS NOT NULL AND t.{{ col }} IS NULL) 
+            THEN t.{{ col }} 
+            ELSE NULL 
+        END AS target_{{ col }}
+    {% endfor %}
+FROM source_filtered s
+INNER JOIN target_filtered t
+ON s.row_id = t.row_id
+WHERE
+    {% for col in common_cols %}
+        (s.{{ col }} != t.{{ col }} OR (s.{{ col }} IS NULL AND t.{{ col }} IS NOT NULL) OR (s.{{ col }} IS NOT NULL AND t.{{ col }} IS NULL))
+        {% if not loop.last %} OR {% endif %}
+    {% endfor %};
+
