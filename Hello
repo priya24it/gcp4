@@ -1,0 +1,26 @@
+SELECT
+    '{{ source_table }}' AS source_table_name,
+    '{{ target_table }}' AS target_table_name,
+    s.row_id,
+    t.row_id,
+    {% for col in common_cols %}
+        CASE 
+            WHEN s.{{ col }} IS DISTINCT FROM t.{{ col }} 
+            THEN s.{{ col }} 
+            ELSE NULL 
+        END AS source_{{ col }},
+        CASE 
+            WHEN s.{{ col }} IS DISTINCT FROM t.{{ col }} 
+            THEN t.{{ col }} 
+            ELSE NULL 
+        END AS target_{{ col }}
+        {% if not loop.last %}, {% endif %}
+    {% endfor %}
+FROM source_filtered s
+INNER JOIN target_filtered t
+ON s.row_id = t.row_id
+WHERE 
+    {% for col in common_cols %}
+        (s.{{ col }} IS DISTINCT FROM t.{{ col }})
+        {% if not loop.last %} OR {% endif %}
+    {% endfor %}
