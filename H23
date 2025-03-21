@@ -1,0 +1,12 @@
+SELECT 
+    s.row_id, t.row_id,
+    {% for col in common_cols %}
+        CASE 
+            WHEN TRIM(COALESCE(s.{{ col }}, '')) != TRIM(COALESCE(t.{{ col }}, '')) 
+            THEN 'Mismatch'
+            ELSE 'Match'
+        END AS {{ col }}_comparison
+        {% if not loop.last %}, {% endif %}
+    {% endfor %}
+FROM source_filtered s
+INNER JOIN target_filtered t ON s.row_id = t.row_id
