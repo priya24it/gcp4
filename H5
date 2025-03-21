@@ -1,0 +1,9 @@
+{% set common_cols = [] %}
+
+{% for col in source_columns %}
+    {% if col in target_columns and not any(digit in col for digit in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) %}
+        {% do common_cols.append(col) %}
+    {% endif %}
+{% endfor %}
+
+{% do log("Filtered Common Columns (No Numbers): " ~ common_cols, info=True) %}
