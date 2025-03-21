@@ -1,0 +1,18 @@
+WITH source_filtered AS (
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY {{ common_cols | join(', ') }}) AS row_id,
+        {% for col in common_cols %}
+            CAST(s.{{ col }} AS STRING) AS {{ col }}
+            {% if not loop.last %}, {% endif %}
+        {% endfor %}
+    FROM {{ source_table }} s
+),
+target_filtered AS (
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY {{ common_cols | join(', ') }}) AS row_id,
+        {% for col in common_cols %}
+            CAST(t.{{ col }} AS STRING) AS {{ col }}
+            {% if not loop.last %}, {% endif %}
+        {% endfor %}
+    FROM {{ target_table }} t
+)
