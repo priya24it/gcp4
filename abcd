@@ -1,0 +1,9 @@
+
+
+
+"I would like to update all the files. For the files that include a partition column, the column is card_number, and the associated vendor is qa-one. Please find the configuration data below."
+
+
+"I would like to update all the files across all partition dates. The files that have a partition column are partitioned by card_number, and the associated vendor is qa. Please find the configuration data below."
+
+Level of Granularity
