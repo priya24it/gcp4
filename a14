@@ -1,0 +1,35 @@
+Certainly! Here's a user story written in a style suitable for Rally (now part of Broadcom's Agile Central) — clear, concise, and focused on value, behavior, and impact. It includes both scenario context and the technical issue around the missing start-date field.
+
+User Story: Update Fails When start-date Is Missing
+Title: Prevent File Processing Failure When start-date Is Not Provided
+
+As a user,
+I want to update all files across all partition dates, including those partitioned by card_number, for vendors such as qa and qa-one,
+So that I can ensure consistent data processing across all environments without manual date input.
+
+Description:
+Currently, the system fails to process files in the following scenarios due to the absence of a required start-date parameter:
+
+Scenario 1:
+"I would like to update all the files across all partition dates. The files that have a partition column are partitioned by card_number, and the associated vendor is qa."
+
+Scenario 2:
+"I would like to update all the files. For the files that include a partition column, the column is card_number, and the associated vendor is qa-one."
+
+In both scenarios, the start-date is set to None in the configuration, resulting in no files being processed. Since start-date is currently treated as a mandatory field, the process skips execution when it's missing or not explicitly defined.
+
+Acceptance Criteria:
+If start-date is not provided, the system should:
+
+Either default to processing all available partition dates
+
+Or throw a clear, actionable error message indicating that start-date is required
+
+Support should be added for:
+
+Optional start-date and end-date that allows full range processing if left undefined
+
+The config should be validated early to catch missing mandatory fields and guide users with appropriate messaging
+
+Logging should indicate whether a full-partition scan is being done (in case start-date is missing) or a limited window
+
