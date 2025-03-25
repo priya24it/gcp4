@@ -1,0 +1,5 @@
+hello
+
+I have a macro that compares data between two BigQuery tables. As part of defining the test approach, I want to load trip data from SQL Server into BigQuery and then compare it with data from Falcon. I'm attempting to connect to SQL Server using Apache Airflow (Composer), but I'm unsure about the correct port. I tried using port 1433, but encountered a "Bad Gateway" error.
+
+Is it possible to connect to SQL Server via the Airflow web server? And is this the correct approach for moving data from SQL Server to BigQuery using Airflow? I would appreciate your guidance or suggestions on the best way to do this.
