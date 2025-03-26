@@ -1,0 +1,37 @@
+import pandas as pd
+
+# File paths
+file1 = 'file1.txt'
+file2 = 'file2.txt'
+
+# Read both files
+df1 = pd.read_csv(file1, sep='|', header=None)
+df2 = pd.read_csv(file2, sep='|', header=None)
+
+# Assign column names
+columns = [f'column{i+1}' for i in range(df1.shape[1])]
+df1.columns = columns
+df2.columns = columns
+
+# Store all differences in a list
+diff_list = []
+
+for idx in range(len(df1)):
+    for col in columns:
+        val1 = df1.at[idx, col]
+        val2 = df2.at[idx, col]
+        if val1 != val2:
+            diff_list.append({
+                'RowNumber': idx + 1,
+                'Column': col,
+                'File1_Value': val1,
+                'File2_Value': val2
+            })
+
+# Create a DataFrame with the differences
+diff_df = pd.DataFrame(diff_list)
+
+# Save to Excel
+diff_df.to_excel('detailed_differences.xlsx', index=False)
+
+print("Detailed differences written to detailed_differences.xlsx")
