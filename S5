@@ -1,0 +1,56 @@
+import pandas as pd
+
+# File paths
+file1 = 'file1.txt'
+file2 = 'file2.txt'
+
+# Read files
+df1 = pd.read_csv(file1, sep='|', header=None)
+df2 = pd.read_csv(file2, sep='|', header=None)
+
+# Assign column names as column1, column2, ...
+num_columns = df1.shape[1]
+columns = [f'column{i+1}' for i in range(num_columns)]
+df1.columns = columns
+df2.columns = columns
+
+# Compare the two dataframes
+differences = df1 != df2
+rows_with_diff = differences.any(axis=1)
+
+# Extract the differing rows
+df1_diff = df1[rows_with_diff].copy()
+df2_diff = df2[rows_with_diff].copy()
+diff_flags = differences[rows_with_diff]
+
+# Add metadata to help understand the differences
+df1_diff.insert(0, 'Source', 'File1')
+df2_diff.insert(0, 'Source', 'File2')
+df1_diff.insert(1, 'RowNumber', df1_diff.index + 1)
+df2_diff.insert(1, 'RowNumber', df2_diff.index + 1)
+
+# Combine for final output
+combined_diff = pd.concat([df1_diff, df2_diff])
+
+# Highlight the cells that are different
+def highlight_differences(x):
+    df = x.copy()
+    # Only color rows from File1 and File2 separately
+    row_idx = df.index
+    for col in columns:
+        df[col] = ''
+    for i in range(0, len(row_idx), 2):
+        if i+1 < len(row_idx):
+            for col in columns:
+                if combined_diff.loc[row_idx[i], col] != combined_diff.loc[row_idx[i+1], col]:
+                    df.at[row_idx[i], col] = 'background-color: yellow'
+                    df.at[row_idx[i+1], col] = 'background-color: yellow'
+    return df
+
+# Write to Excel with highlighting
+output_file = 'differences.xlsx'
+with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+    styled = combined_diff.style.apply(highlight_differences, axis=None)
+    styled.to_excel(writer, index=False, sheet_name='Differences')
+
+print(f"Differences written to {output_file}")
