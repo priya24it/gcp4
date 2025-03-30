@@ -1,0 +1,37 @@
+Title: Add Support for ddm_columns in EDFLConfig YAML Specification
+
+As a data platform engineer,
+I want to include the ddm_columns field in the EDFLConfig YAML configuration,
+so that sensitive columns are automatically detected and handled (e.g. hashed) during data load operations.
+
+Background
+The current YAML configuration template used for defining ingestion specs in the data platform is missing the ddm_columns section. This section is necessary to define columns that should undergo data de-identification (e.g., hashing) to meet compliance and data privacy requirements.
+
+The structure should follow the format:
+
+yaml
+Copy
+Edit
+ddm_columns:
+  ColumnName1: Hashed
+  ColumnName2: Hashed
+An example exists in another config where columns like sCContact, iCOriginalAccount, and iCAccount are clearly marked for hashing.
+
+Acceptance Criteria
+ ddm_columns block is supported and validated in the YAML configuration schema.
+
+ The values under ddm_columns support types like Hashed.
+
+ The ingestion process applies transformations (e.g., hashing) based on these definitions.
+
+ Backward compatibility is maintained for configurations that do not include ddm_columns.
+
+Tasks
+Update YAML templates to support ddm_columns.
+
+Modify the ingestion logic to read and apply DDM transformations.
+
+Validate config changes with sample datasets.
+
+Update documentation and examples to reflect the new field.
+
