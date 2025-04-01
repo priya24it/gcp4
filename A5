@@ -1,0 +1,13 @@
+Subject: Observations from Azure VDI Production - Discrepancies in Data Load and Error Capture
+
+Email Body:
+
+Hi Team,
+
+I have completed a review of the data load process in the Azure VDI Production environment and would like to share the following observations for your attention:
+	1.	Several policies (e.g., MR025301, MR025306) were expected to be present in the Landing table but were rejected without being captured in the DQ_Errors or Error table, indicating a possible issue in error handling.
+	2.	Policies such as MR025302 to MR025305 were rejected even though no error was captured in DQ_Errors – this behavior is inconsistent with expected functionality.
+	3.	For policies MR025307 and MR025308, although specific errors like “Last name is required” were expected, the rejections occurred without the corresponding entries in the Error table.
+	4.	On the other hand, policies like MR025309 to MR025318 behaved as expected, where data was either correctly rejected and captured in the Error table or successfully landed.
+
+These inconsistencies need to be investigated to ensure proper error logging and reliable data val
