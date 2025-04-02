@@ -1,0 +1,23 @@
+Hi Tina,
+
+Thank you—this email really helps in excluding scenarios related to special characters.
+
+Could you please review the following scenarios?
+
+FirstName is null
+
+FirstName contains numeric values
+
+LastName contains numeric values
+
+Scenario Details:
+
+FirstName is null: When the data is rejected from the Landing table due to a null FirstName, it should appear in the error table. However, the entry is currently missing from both the Landing and error tables.
+
+FirstName contains numeric values: When the data is rejected from the Landing table due to numeric characters in the FirstName, the corresponding record should appear in the error table with a specific error message such as:
+"First Name should not have numeric values", instead of a generic error.
+
+LastName contains numeric values: Similar to the above, when LastName has numeric values and is rejected from the Landing table, the entry should be recorded in the error table with a specific error message such as:
+"Last Name should not have numeric values".
+
+
