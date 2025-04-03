@@ -1,0 +1,26 @@
+Scenarios: Numeric Values
+	•	First Name has numeric values
+	•	Last Name has numeric values
+	•	Both First Name and Last Name have numeric values
+
+It appears that records with numeric values in First Name or Last Name are not loading into either the error or landing tables.
+Question: Does this imply that Org data does not accept or process values that contain alphabetic characters?
+
+⸻
+
+Org Data Setup:
+
+Description:
+Records like MR025345, MR025355 are specifically set up with Org data. However, they are not loaded into either the landing table or error table. These records contain Org data with the following issues:
+
+Scenarios:
+	•	Org value is null
+	•	Org data contains valid values
+	•	Org data has invalid data
+	•	Org data contains numeric values
+
+These records are currently not appearing in any table.
+
+⸻
+
+Please let me know your thoughts or if any further clarification is needed.
