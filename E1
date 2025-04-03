@@ -1,0 +1,17 @@
+Subject: Test Data Results – Review Requested
+
+Hi [Recipient’s Name],
+
+Below are the results of the test data.
+Could you please take a look at these when you get some time?
+
+⸻
+
+First Name is null:
+	•	MR025302, MR025303 – Policies are set up with null values for First Name. These records do not appear in either the error or landing table.
+
+Last Name is null:
+	•	MR025309, MR025310 – Policies are set up with null values for Last Name. These records also do not appear in the error or landing table.
+
+Both First Name and Last Name are null:
+	•	MR025339, MR025340 – Policies are set up with both First Name and Last Name as null.
