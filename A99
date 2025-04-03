@@ -1,0 +1,1 @@
+When the organization name is null, the corresponding names are also null. In this case, the record is being loaded into the error table with the error “Abcd.” However, if the names are present, the record is successfully loaded as a person record. As a result, I’m unable to test the organization data properly.
