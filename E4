@@ -1,0 +1,6 @@
+This is my dataset. The firstname field contains values like “Wife”, which I believe should qualify as a fuzzy match.
+
+However, these records have been loaded into the landing table. Could you please confirm if this is the expected behavior?
+Shouldn’t the logic be matching on a condition like firstname LIKE '%wife%'?
+
+Also, could you clarify — is the match being treated as exact or fuzzy?
