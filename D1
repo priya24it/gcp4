@@ -1,0 +1,34 @@
+import pandas as pd
+
+# Load and process the first CSV
+# Replace 'csv1.csv' with your actual filename
+df1 = pd.read_csv("csv1.csv")
+
+# Extract the first value from pipe-separated 'column_values'
+df1['first_value'] = df1['column_values'].str.split('|').str[0]
+
+# Select required columns for first dataset
+df1_processed = df1[['first_value', 'column_values', 'error_desc']]
+
+# Load and process the second CSV
+# Replace 'csv2.csv' with your actual filename
+df2 = pd.read_csv("csv2.csv")
+
+# Extract the first value from pipe-separated 'column_values'
+df2['first_value'] = df2['column_values'].str.split('|').str[0]
+
+# Select required columns for second dataset
+df2_processed = df2[['first_value', 'PKEY', 'party_type']]
+
+# Combine the two datasets
+combined_df = pd.concat([df1_processed, df2_processed], ignore_index=True)
+
+# Sort by 'first_value' in ascending order
+combined_df = combined_df.sort_values(by='first_value', ascending=True)
+
+# Save the result to a new CSV file
+combined_df.to_csv("combined_output.csv", index=False)
+
+# Optionally print the first few rows to confirm
+print("Combined and sorted data:")
+print(combined_df.head())
