@@ -1,0 +1,16 @@
+What to Do
+
+If you want to match only .csv files (regardless of name):
+
+
+
+"use-file-patterns": "Y",
+"all-file-patterns": "*.csv"
+
+
+"use-file-patterns": "N",
+"file-prefix": "*",  // or leave it blank if your system treats "*" as "all"
+"file-suffix": "csv"
+
+
+If both are being used, your current config creates ambiguity.
